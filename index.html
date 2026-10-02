@@ -227,7 +227,7 @@
             }
             waStatus.innerText = `⏳ جاري إرسال أمر التشغيل للسيرفر... يرجى الانتظار`;
             try {
-                const response = await fetch(`http://localhost:3000/start?companyId=${companyId}`);
+                const response = await fetch(`https://sales-saas-api.onrender.com/start?companyId=${companyId}`);
                 const text = await response.text();
                 waStatus.style.color = 'green';
                 waStatus.innerText = `✅ رد السيرفر: ${text}`;
