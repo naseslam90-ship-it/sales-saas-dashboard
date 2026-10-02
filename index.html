@@ -30,6 +30,7 @@
         h1 {
             text-align: center;
             color: #1a73e8;
+            font-size: 1.8rem;
         }
 
         h2 {
@@ -66,11 +67,18 @@
             background-color: #1557b0;
         }
 
+        /* تنسيق الجداول لتدعم التمرير على الموبايل */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 15px;
             background: white;
+            min-width: 600px;
         }
 
         th,
@@ -112,6 +120,26 @@
             border: 2px solid #28a745;
             text-align: center;
         }
+
+        /* تعديلات الموبايل */
+        @media (max-width: 768px) {
+            .two-columns {
+                flex-direction: column;
+            }
+
+            body {
+                padding: 10px;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            button {
+                font-size: 0.9rem;
+                padding: 12px;
+            }
+        }
     </style>
 </head>
 
@@ -119,17 +147,16 @@
     <div class="container">
         <h1>إدارة المبيعات والمنتجات الذكية</h1>
 
-        <!-- 🚀 القسم الجديد: تحكم السيرفر والواتساب -->
         <div class="card server-card">
             <h2 style="color: #28a745; border: none;">🚀 تشغيل محرك الذكاء الاصطناعي (واتساب)</h2>
             <p>اضغط على الزر أدناه لتوليد كود الـ QR الخاص بشركتك وربط الواتساب بالكتالوج الحقيقي.</p>
-            <button onclick="startWhatsApp()" style="background-color: #28a745; width: 50%; font-size: 1.1rem;">🔗 ربط
-                الواتساب الآن</button>
+            <button onclick="startWhatsApp()"
+                style="background-color: #28a745; width: 100%; max-width: 300px; font-size: 1.1rem;">🔗 ربط الواتساب
+                الآن</button>
             <span id="waStatus" style="display: block; margin-top: 15px; font-weight: bold; font-size: 1.1rem;"></span>
         </div>
 
         <div class="two-columns">
-            <!-- العمود الأيمن: إضافة المنتجات -->
             <div class="card column">
                 <h2>📦 إضافة منتج للكتالوج</h2>
                 <input type="text" id="itemName" placeholder="اسم المنتج (مثال: شقة 200 متر)">
@@ -139,47 +166,48 @@
                 <span id="statusMessage"></span>
             </div>
 
-            <!-- العمود الأيسر: عرض المنتجات الحالية -->
             <div class="card column">
                 <h2>📋 المنتجات المسجلة في عقل البوت</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>الاسم</th>
-                            <th>السعر</th>
-                            <th>حذف</th>
-                        </tr>
-                    </thead>
-                    <tbody id="itemsTableBody">
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>الاسم</th>
+                                <th>السعر</th>
+                                <th>حذف</th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsTableBody">
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
-        <!-- قسم عرض العملاء -->
         <div class="card">
             <h2>👥 العملاء المهتمين (Leads) من الواتساب</h2>
             <button onclick="loadLeads()" style="background-color: #6c757d; width: auto; padding: 10px 20px;">تحديث
                 القائمة 🔄</button>
-            <table>
-                <thead>
-                    <tr>
-                        <th>رقم الواتساب</th>
-                        <th>نية العميل</th>
-                        <th>ملخص طلب العميل</th>
-                        <th>التاريخ</th>
-                    </tr>
-                </thead>
-                <tbody id="leadsTableBody">
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>رقم الواتساب</th>
+                            <th>نية العميل</th>
+                            <th>ملخص طلب العميل</th>
+                            <th>التاريخ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leadsTableBody">
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <script>
         const SUPABASE_URL = 'https://tifhddbzokrbowpfmcnd.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_raO_6220mpWJpyjnGPHHDw_R18zJagM';
-
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         async function getCompanyId() {
@@ -187,30 +215,22 @@
             return data && data.length > 0 ? data[0].id : null;
         }
 
-        // 🚀 الدالة الجديدة لربط الواتساب بالسيرفر
         async function startWhatsApp() {
             const waStatus = document.getElementById('waStatus');
             waStatus.style.color = 'blue';
             waStatus.innerText = '⏳ جاري الاتصال بقاعدة البيانات لجلب هويتك...';
-
             const companyId = await getCompanyId();
             if (!companyId) {
                 waStatus.style.color = 'red';
                 waStatus.innerText = '❌ خطأ: لم يتم العثور على شركة مسجلة.';
                 return;
             }
-
             waStatus.innerText = `⏳ جاري إرسال أمر التشغيل للسيرفر... يرجى الانتظار`;
-
             try {
-                // الاتصال بالسيرفر المحلي (الـ API الخاص بك)
                 const response = await fetch(`http://localhost:3000/start?companyId=${companyId}`);
                 const text = await response.text();
-
                 waStatus.style.color = 'green';
                 waStatus.innerText = `✅ رد السيرفر: ${text}`;
-
-                // تنبيه المستخدم لفتح الـ Terminal
                 alert("تم إرسال الطلب بنجاح! افتح الشاشة السوداء (Terminal) الآن لمسح كود الـ QR.");
             } catch (error) {
                 waStatus.style.color = 'red';
@@ -220,7 +240,7 @@
 
         async function loadItems() {
             const tbody = document.getElementById('itemsTableBody');
-            tbody.innerHTML = '<tr><td colspan="3">جاري التحميل...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">جاري التحميل...</td></tr>';
             const { data, error } = await supabaseClient.from('items').select('*');
             tbody.innerHTML = '';
             if (data && data.length > 0) {
@@ -229,11 +249,11 @@
                         <tr>
                             <td>${item.name}</td>
                             <td>${item.price}</td>
-                            <td><button onclick="deleteItem('${item.id}')" style="background: red; padding: 5px; margin:0;">حذف</button></td>
+                            <td><button onclick="deleteItem('${item.id}')" style="background: red; padding: 5px; margin:0; width:auto;">حذف</button></td>
                         </tr>`;
                 });
             } else {
-                tbody.innerHTML = '<tr><td colspan="3">لا توجد منتجات.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">لا توجد منتجات.</td></tr>';
             }
         }
 
